@@ -1,0 +1,62 @@
+# 每日生成日报并上传到阿里云 OSS（北京时间 23:00 = UTC 15:00）
+name: Daily Digest to OSS
+
+on:
+  schedule:
+    - cron: '0 15 * * *'
+  workflow_dispatch:
+
+env:
+  DATE: ''
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set date
+        run: echo "DATE=$(date -u +%Y-%m-%d)" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Run digest
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_BASE: ${{ secrets.OPENAI_API_BASE }}
+          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+        run: |
+          mkdir -p output/digest
+          cd ai-daily-digest && bun run scripts/digest.ts \
+            --hours 48 --top-n 15 --lang zh \
+            --output "../output/digest/${{ env.DATE }}.md"
+
+      - name: Update digest/index.json
+        run: |
+          if [ -n "${{ secrets.OSS_PUBLIC_BASE_URL }}" ]; then
+            EXISTING=$(curl -sf "${{ secrets.OSS_PUBLIC_BASE_URL }}/digest/index.json" || echo "[]")
+          else
+            EXISTING="[]"
+          fi
+          echo "$EXISTING" | node -e "
+            const d = require('fs').readFileSync(0,'utf8');
+            let arr = [];
+            try { arr = JSON.parse(d); } catch(e) {}
+            const today = process.env.DATE;
+            if (today && !arr.includes(today)) arr.push(today);
+            arr.sort((a,b)=>b.localeCompare(a));
+            require('fs').writeFileSync('output/digest/index.json', JSON.stringify(arr));
+          "
+
+      - name: Upload to Aliyun OSS
+        uses: Menci/upload-to-oss@v1
+        with:
+          access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
+          access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+          bucket: ${{ secrets.OSS_BUCKET }}
+          endpoint: ${{ secrets.OSS_ENDPOINT }}
+          local-path: output/digest
+          remote-path: digest/

@@ -1,0 +1,57 @@
+:root {
+  --bg: #0f1116;
+  --surface: #161b22;
+  --border: #30363d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #58a6ff;
+  --green: #3fb950;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2em 0.5em;
+  font-size: 0.85em;
+  border-radius: 4px;
+  background: rgba(88, 166, 255, 0.15);
+  color: var(--accent);
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9em;
+}

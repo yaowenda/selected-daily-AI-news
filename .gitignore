@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+site/node_modules/
+
+# Build / output
+site/dist/
+output/
+
+# Local env and secrets (never commit)
+.env
+.env.local
+.env.*.local
+*secrets*.txt
+*secrets*.md
+GitHub-Secrets-填写清单.md
+开发说明.md
+需要你提供.md
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
