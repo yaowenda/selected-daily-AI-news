@@ -33,3 +33,14 @@ jobs:
           endpoint: ${{ secrets.OSS_ENDPOINT }}
           local-path: site/dist
           remote-path: /
+
+      # 修复 index.html 的 Content-Type，避免被浏览器当成下载
+      - name: Fix Content-Type for index.html
+        env:
+          OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
+          OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+          OSS_ENDPOINT: ${{ secrets.OSS_ENDPOINT }}
+        run: |
+          wget -q https://gosspublic.alicdn.com/ossutil/1.7.15/ossutil64 -O ossutil && chmod +x ossutil
+          ./ossutil config -e $OSS_ENDPOINT -i $OSS_ACCESS_KEY_ID -k $OSS_ACCESS_KEY_SECRET
+          ./ossutil set-meta oss://${{ secrets.OSS_BUCKET }}/index.html Content-Type:text/html --update
