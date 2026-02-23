@@ -15,7 +15,12 @@ const error = ref('');
 const loadDates = async () => {
   try {
     const r = await fetch(`${BASE}/index.json`);
-    if (!r.ok) throw new Error('无法加载日期列表');
+    if (!r.ok) {
+      if (r.status === 404) {
+        throw new Error('no_data');
+      }
+      throw new Error('无法加载日期列表');
+    }
     dates.value = await r.json();
     if (dates.value.length && !selectedDate.value) selectedDate.value = dates.value[0];
   } catch (e) {
@@ -79,7 +84,12 @@ function humanTime(iso: string) {
       </div>
     </header>
 
-    <p v-if="error" class="error">{{ error }}</p>
+    <p v-if="error" class="error">
+      <template v-if="error === 'no_data'">
+        暂无日报数据。请先在 GitHub 仓库的 <strong>Actions</strong> 中手动运行「Daily Digest to OSS」生成首期日报；或等待每日定时任务（北京时间 23:00）自动生成。
+      </template>
+      <template v-else>{{ error }}</template>
+    </p>
     <p v-else-if="loading" class="muted">加载中…</p>
 
     <template v-else-if="digest">
